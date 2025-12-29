@@ -1,0 +1,39 @@
+--- Memory Allocator Performance Test ---
+Date: Mon Dec 29 17:44:51 KST 2025
+
+Iteration 1 - Basic: 
+5982 ms, Mempool: 
+4461 ms
+Iteration 2 - Basic: 
+6141 ms, Mempool: 
+4555 ms
+Iteration 3 - Basic: 
+5990 ms, Mempool: 
+4624 ms
+Iteration 4 - Basic: 
+5856 ms, Mempool: 
+4887 ms
+Iteration 5 - Basic: 
+6096 ms, Mempool: 
+4551 ms
+Iteration 6 - Basic: 
+5940 ms, Mempool: 
+4503 ms
+Iteration 7 - Basic: 
+8631 ms, Mempool: 
+5257 ms
+Iteration 8 - Basic: 
+14697 ms, Mempool: 
+4553 ms
+Iteration 9 - Basic: 
+6415 ms, Mempool: 
+4833 ms
+Iteration 10 - Basic: 
+6069 ms, Mempool: 
+4814 ms
+
+------------------------------------------
+Final Average Results (10 runs):
+Average Basic Allocator: 7181.7 ms
+Average Mempool Allocator: 4703.8 ms
+—————————————————————
