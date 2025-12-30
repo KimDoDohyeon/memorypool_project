@@ -1,2 +1,11 @@
 allocation_log.csv
 result_performance.txt
+build/
+*.o
+*.exe
+*.out
+__pycache__/
+*.pyc
+*.log
+.vscode/
+.DS_Store

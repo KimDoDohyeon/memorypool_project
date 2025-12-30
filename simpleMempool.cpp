@@ -35,6 +35,7 @@ public:
     void alloc(int64_t obj_id)
     {
         int64_t *ptr = (int64_t *)std::malloc(sizeof(int64_t));
+        *ptr = 0;
         allocated_map[obj_id] = ptr;
     }
     void free(int64_t obj_id)
@@ -63,12 +64,14 @@ public:
         if (!pool.empty())
         {
             int64_t *ptr = (int64_t *)pool.back();
+            *ptr = 0;
             pool.pop_back();
             allocated_map[obj_id] = ptr;
         }
         else
         {
             int64_t *ptr = (int64_t *)std::malloc(sizeof(int64_t));
+            *ptr = 0;
             allocated_map[obj_id] = ptr;
         }
     }
@@ -97,12 +100,14 @@ public:
         if (!pool.empty())
         {
             int64_t *ptr = (int64_t *)pool.front();
+            *ptr = 0;
             pool.pop_front();
             allocated_map[obj_id] = ptr;
         }
         else
         {
             int64_t *ptr = (int64_t *)std::malloc(sizeof(int64_t));
+            *ptr = 0;
             allocated_map[obj_id] = ptr;
         }
     }
@@ -140,6 +145,7 @@ public:
         if (count > 0)
         {
             int64_t *ptr = (int64_t *)pool[front_idx];
+            *ptr = 0;
             
             // front를 한 칸 전진 (원형으로 뱅글뱅글 돔)
             front_idx = (front_idx + 1) % capacity; 
@@ -150,6 +156,7 @@ public:
         else
         {
             int64_t *ptr = (int64_t *)std::malloc(sizeof(int64_t));
+            *ptr = 0;
             allocated_map[obj_id] = ptr;
         }
     }
@@ -258,7 +265,7 @@ int main(int argc, char** argv)
     std::vector<entry> entries = readFile("allocation_log.csv");
 
     // 2. 반복 횟수 설정
-    const int TEST_ITERATIONS = 5;
+    const int TEST_ITERATIONS = 1;
 
     // ---------------------------------------------------------
     // TEST 1: Basic Allocator
