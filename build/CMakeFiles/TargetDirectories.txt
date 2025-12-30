@@ -1,0 +1,4 @@
+/Users/dh/kick_off_project/build/CMakeFiles/gen_data.dir
+/Users/dh/kick_off_project/build/CMakeFiles/alloc_test.dir
+/Users/dh/kick_off_project/build/CMakeFiles/edit_cache.dir
+/Users/dh/kick_off_project/build/CMakeFiles/rebuild_cache.dir
