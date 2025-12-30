@@ -61,12 +61,12 @@ do
     # ------------------------------------------------
     # [A] 명령어 프리픽스 설정 (CPU Pinning)
     # ------------------------------------------------
-    if [[ "$OS_NAME" == "Linux" ]]; then
-        # Linux: 0번 코어 고정
-        CMD_PREFIX="taskset -c 0"
-    else
-        CMD_PREFIX=""
-    fi
+    #if [[ "$OS_NAME" == "Linux" ]]; then
+    #    # Linux: 0번 코어 고정
+    #    CMD_PREFIX="taskset -c 0"
+    #else
+    #    CMD_PREFIX=""
+    #fi
 
     # ------------------------------------------------
     # [B] 프로세스 격리 실행 (각각 별도 프로세스로 실행)
