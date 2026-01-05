@@ -1,10 +1,17 @@
-# memorypool_project
+# Memory Pool Project
 
-## 프로젝트 설명
+메모리 할당의 효율성을 높이기 위한 메모리 풀 구현 프로젝트입니다. C++로 작성된 메모리 풀 클래스를 제공하며, 성능 테스트를 위한 도구를 포함합니다.
 
-memorypool_project는 메모리 풀을 구현한 프로젝트입니다. 메모리 할당의 효율성을 높이기 위해 C++로 메모리 풀 클래스를 제공하며, 할당 로그 생성, 성능 테스트 등의 기능을 포함합니다.
+## 기능
 
-메모리 풀은 기본 할당자(malloc/free), 스택 기반(LIFO), 큐 기반(FIFO) 세 가지 방식을 지원하며, 성능 비교를 위한 테스트를 제공합니다.
+- **세 가지 메모리 할당 방식**:
+  - 기본 할당자: `malloc`/`free` 직접 사용
+  - 스택 메모리 풀 (LIFO): `std::vector` 기반
+  - 큐 메모리 풀 (FIFO): `std::deque` 기반
+
+- **할당 로그 생성**: Python 스크립트로 메모리 할당/해제 패턴 생성
+- **성능 테스트**: 10회 반복 측정으로 평균 성능 비교
+- **결과 분석**: 속도 향상률 계산 및 보고
 
 ## 파일 구조
 
@@ -20,7 +27,6 @@ memorypool_project는 메모리 풀을 구현한 프로젝트입니다. 메모�
 - C++17 지원 컴파일러 (g++, clang 등)
 - CMake 3.10 이상
 - Python 3.x
-- Linux 환경 (CPU Governor 설정을 위해)
 
 ## 빌드 방법
 
@@ -57,7 +63,6 @@ memorypool_project는 메모리 풀을 구현한 프로젝트입니다. 메모�
 ```
 
 ### 테스트 설명
-- **CPU Governor 설정**: Linux에서 CPU를 'performance' 모드로 설정 시도 (권한 필요)
 - **로그 생성**: 각 테스트 반복마다 `allocation_log.csv`를 생성하여 메모리 할당 패턴 시뮬레이션
 - **성능 측정**: 기본 할당자, 스택 메모리 풀, 큐 메모리 풀의 할당/해제 시간을 측정
 - **반복 횟수**: 10회 반복하여 평균 성능 계산
@@ -90,9 +95,36 @@ Final Average Results (10 runs):
 python3 allocation_log_generator.py
 ```
 
+## 구현 세부사항
+
+### 메모리 풀 구조
+
+- **BasicAllocator**: `std::unordered_map`으로 할당된 포인터 관리
+- **StackAllocator**: `std::vector`로 재사용 가능한 메모리 블록 관리 (LIFO)
+- **QueueAllocator**: `std::deque`로 재사용 가능한 메모리 블록 관리 (FIFO)
+
+### 로그 포맷
+
+`allocation_log.csv`:
+```
+op,obj_id
+a,1
+a,2
+f,1
+...
+```
+
+- `a`: 할당 (alloc)
+- `f`: 해제 (free)
+
+## 성능 최적화
+
+- `-O3` 컴파일 최적화
+- `volatile` 키워드로 최적화 방지 (정확한 시간 측정)
+- CPU 코어 고정 실행 (`taskset`)
+
 ## 주의사항
 
-- CPU Governor 변경은 root 권한 필요 (쿠버네티스 환경에서는 제한될 수 있음)
 - 테스트는 CPU 0번 코어에 고정 실행 (`taskset`)
 - 메모리 사용량이 많을 수 있으므로 충분한 RAM 확보
 
