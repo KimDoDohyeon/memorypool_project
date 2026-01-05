@@ -5,17 +5,17 @@
 ## 기능
 
 - **세 가지 메모리 할당 방식**:
-  - 기본 할당자: `malloc`/`free` 직접 사용
-  - 스택 메모리 풀 (LIFO): `std::vector` 기반
-  - 큐 메모리 풀 (FIFO): `std::deque` 기반
+  - 기본 할당자: `malloc`/`free` 직접 사용 (`BasicAllocator`)
+  - 스택 메모리 풀 (LIFO): `std::vector` 기반 (`MempoolStack`)
+  - 큐 메모리 풀 (FIFO): 원형 큐 구현 (`MempoolCircularQueue`)
 
 - **할당 로그 생성**: Python 스크립트로 메모리 할당/해제 패턴 생성
-- **성능 테스트**: 10회 반복 측정으로 평균 성능 비교
+- **성능 테스트**: 워밍업 + 5회 반복 측정으로 최소 시간 계산
 - **결과 분석**: 속도 향상률 계산 및 보고
 
 ## 파일 구조
 
-- `simpleMempool.cpp`: 메모리 풀 구현 및 테스트 실행 파일
+- `simpleMempool.cpp`: 메모리 풀 구현 및 메인 함수 (BasicAllocator, MempoolStack, MempoolCircularQueue)
 - `allocation_log_generator.py`: 할당 로그(CSV) 생성 Python 스크립트
 - `CMakeLists.txt`: CMake 빌드 설정 파일
 - `runtest.sh`: 성능 테스트 실행 스크립트 (10회 반복 테스트)
@@ -65,20 +65,18 @@
 ### 테스트 설명
 - **로그 생성**: 각 테스트 반복마다 `allocation_log.csv`를 생성하여 메모리 할당 패턴 시뮬레이션
 - **성능 측정**: 기본 할당자, 스택 메모리 풀, 큐 메모리 풀의 할당/해제 시간을 측정
-- **반복 횟수**: 10회 반복하여 평균 성능 계산
-- **결과**: `result_performance.txt`에 평균 시간과 성능 향상률 기록
+- **반복 횟수**: 워밍업 1회 + 실제 측정 5회 (최소 시간 기록)
+- **결과**: 각 모드의 실행 시간 출력
 
 ### 테스트 결과 해석
-결과 파일 예시:
+직접 실행 시 출력 예시:
 ```
-Final Average Results (10 runs):
-1. Basic Allocator:       150.5 ms
-2. Mempool (Stack/LIFO):  120.3 ms (Speedup: 25.1%)
-3. Mempool (Queue/FIFO):  118.7 ms (Speedup: 26.8%)
+[1] Basic Allocator: 150ms
+[2] Mempool (STACK): 120ms
+[3] Mempool (QUEUE): 118ms
 ```
 
-- **Speedup**: 기본 할당자 대비 성능 향상률
-- 스택/큐 메모리 풀이 일반적으로 더 빠름
+스크립트 실행 시 `result_performance.txt`에 평균 시간과 성능 향상률 기록.
 
 ## 사용법
 
@@ -100,8 +98,14 @@ python3 allocation_log_generator.py
 ### 메모리 풀 구조
 
 - **BasicAllocator**: `std::unordered_map`으로 할당된 포인터 관리
-- **StackAllocator**: `std::vector`로 재사용 가능한 메모리 블록 관리 (LIFO)
-- **QueueAllocator**: `std::deque`로 재사용 가능한 메모리 블록 관리 (FIFO)
+- **MempoolStack**: `std::vector`로 재사용 가능한 메모리 블록 관리 (LIFO, 스택처럼 동작)
+- **MempoolCircularQueue**: `std::vector` 기반 원형 큐로 재사용 가능한 메모리 블록 관리 (FIFO)
+
+### 벤치마크 함수
+
+`run_benchmark` 템플릿 함수를 사용하여 각 할당자에 대해 동일한 테스트 로직 적용:
+- 워밍업 1회 수행
+- 실제 측정 5회 반복, 최소 시간 기록
 
 ### 로그 포맷
 

@@ -7,7 +7,7 @@ import sys
 # True  : 톱니바퀴 패턴 (Fill/Drain 반복) -> Cache Locality 테스트에 유리 (권장)
 # False : 50:50 랜덤 패턴 (Ping-Pong) -> Pool 깊이가 얕아짐
 # ==========================================
-USE_SAWTOOTH_MODE = True 
+USE_SAWTOOTH_MODE = False 
 
 csv.field_size_limit(sys.maxsize)
 
@@ -96,7 +96,7 @@ def generate_allocation_log(max_id, pool_limit):
 
 if __name__ == "__main__":
     # 테스트 규모 설정
-    MAX_ID = 1 << 24     # 총 생성할 ID 개수 (약 1600만)
+    MAX_ID = 1 << 26     # 총 생성할 ID 개수 (약 6700만)
     POOL_LIMIT = 1 << 20 # 풀 최대 크기 (약 100만 객체)
     
     generate_allocation_log(MAX_ID, POOL_LIMIT)

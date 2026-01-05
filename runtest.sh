@@ -5,7 +5,7 @@
 # ==========================================
 # CPU Pinning 활성화 여부 (true: 켜기, false: 끄기)
 # k8s 환경이나 권한 문제로 taskset 실패 시 false로 변경하세요.
-ENABLE_CPU_PINNING=true
+ENABLE_CPU_PINNING=false
 
 # 테스트 반복 횟수
 ITERATIONS=10
@@ -42,6 +42,19 @@ if [ ! -f "$EXECUTABLE_NAME" ]; then
 fi
 
 # ==========================================
+# 로그 파일 생성
+# ==========================================
+if [ -f allocation_log.csv ]; then
+    rm -f allocation_log.csv
+fi
+
+# python 스크립트 실행 (한 번만 수행)
+if ! python3 "$PROJECT_ROOT/allocation_log_generator.py"; then
+    echo "Error: Failed to generate allocation_log.csv"
+    exit 1
+fi
+
+# ==========================================
 # 2. 테스트 루프 (프로세스 격리 적용)
 # ==========================================
 for ((i=1; i<=ITERATIONS; i++))
@@ -61,17 +74,7 @@ do
     # ------------------------------------------------
     # [B] 프로세스 격리 실행 (각각 별도 프로세스로 실행)
     # ------------------------------------------------
-    # 매 반복마다 새로운 로그 데이터 생성 (데이터 편향 방지)
-    if [ -f allocation_log.csv ]; then
-        rm -f allocation_log.csv
-    fi
     
-    # python 스크립트 실행
-    if ! python3 "$PROJECT_ROOT/allocation_log_generator.py"; then
-        echo "Error: Failed to generate allocation_log.csv"
-        exit 1
-    fi
-
     # 1. Basic Allocator 실행
     OUTPUT_BASIC=$($CMD_PREFIX ./$EXECUTABLE_NAME --mode=basic 2>&1)
     BASIC_TIME=$(echo "$OUTPUT_BASIC" | grep "\[1\]" | awk -F': ' '{print $2}' | sed 's/ms//')

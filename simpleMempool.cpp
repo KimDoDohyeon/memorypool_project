@@ -85,43 +85,6 @@ public:
     }
 };
 
-// queue 방식 메모리 풀 (FIFO) - std::deque 사용
-class MempoolQueue
-{
-private:
-    std::deque<void *> pool;
-    std::unordered_map<int64_t, int64_t *> allocated_map;
-
-public:
-    MempoolQueue()
-    {
-        allocated_map.reserve(MAX_POOL_SIZE);
-    }
-    void alloc(int64_t obj_id)
-    {
-        if (!pool.empty())
-        {
-            int64_t *ptr = (int64_t *)pool.front();
-            *ptr = 0;
-            pool.pop_front();
-            allocated_map[obj_id] = ptr;
-        }
-        else
-        {
-            int64_t *ptr = (int64_t *)std::malloc(sizeof(int64_t));
-            *ptr = 0;
-            allocated_map[obj_id] = ptr;
-        }
-    }
-    void free(int64_t obj_id)
-    {
-        int64_t *ptr = allocated_map[obj_id];
-        volatile int temp = *ptr;
-        allocated_map.erase(obj_id);
-        pool.push_back(ptr);
-    }
-};
-
 // 원형 큐 (Circular Queue) 방식
 // std::vector를 사용하지만 논리적으로는 Queue(FIFO)로 동작함
 class MempoolCircularQueue
