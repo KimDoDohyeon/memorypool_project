@@ -20,14 +20,14 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/allocation_log.csv
     
-    # 실행할 명령: python3 allocation_log_generater.py
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/allocation_log_generater.py
+    # 실행할 명령: python3 allocation_log_generator.py
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/allocation_log_generator.py
     
     # 중요: 파이썬이 실행될 위치를 build 폴더로 지정해야, csv가 그 자리에 생김
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     
     # 의존성: 파이썬 파일이 수정되면 다시 실행함
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/allocation_log_generater.py
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/allocation_log_generator.py
     
     COMMENT "Running Python script to generate allocation_log.csv..."
 )
@@ -44,4 +44,4 @@ add_custom_target(gen_data DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/allocation_log.cs
 add_executable(alloc_test simpleMempool.cpp)
 
 # "alloc_test를 빌드하기 전에 무조건 gen_data(csv 생성)부터 끝내라"고 지시
-add_dependencies(alloc_test gen_data)
+# add_dependencies(alloc_test gen_data)  # 주석 처리하여 make 시 로그 파일 생성 안 함

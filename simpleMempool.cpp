@@ -41,6 +41,7 @@ public:
     void free(int64_t obj_id)
     {
         int64_t *ptr = allocated_map[obj_id];
+        volatile int temp = *ptr;
         allocated_map.erase(obj_id);
         std::free(ptr);
     }
@@ -78,6 +79,7 @@ public:
     void free(int64_t obj_id)
     {
         int64_t *ptr = allocated_map[obj_id];
+        volatile int temp = *ptr;
         allocated_map.erase(obj_id);
         pool.push_back(ptr);
     }
@@ -114,19 +116,20 @@ public:
     void free(int64_t obj_id)
     {
         int64_t *ptr = allocated_map[obj_id];
+        volatile int temp = *ptr;
         allocated_map.erase(obj_id);
         pool.push_back(ptr);
     }
 };
 
-// [NEW] 원형 큐 (Circular Queue) 방식
+// 원형 큐 (Circular Queue) 방식
 // std::vector를 사용하지만 논리적으로는 Queue(FIFO)로 동작함
 class MempoolCircularQueue
 {
 private:
     std::vector<void *> pool; // 데이터를 담을 그릇 (Vector 사용!)
     std::unordered_map<int64_t, int64_t *> allocated_map;
-    
+
     size_t front_idx; // 큐의 앞 (나가는 곳)
     size_t rear_idx;  // 큐의 뒤 (들어오는 곳)
     size_t count;     // 현재 들어있는 개수
@@ -134,7 +137,8 @@ private:
 
 public:
     // 생성자: 미리 큰 방을 잡아둡니다. (Reserve 효과)
-    MempoolCircularQueue() : front_idx(0), rear_idx(0), count(0), capacity(MAX_POOL_SIZE) {
+    MempoolCircularQueue() : front_idx(0), rear_idx(0), count(0), capacity(MAX_POOL_SIZE)
+    {
         pool.resize(MAX_POOL_SIZE); // reserve가 아니라 resize로 실제 공간을 채워둡니다.
         allocated_map.reserve(MAX_POOL_SIZE);
     }
@@ -146,9 +150,9 @@ public:
         {
             int64_t *ptr = (int64_t *)pool[front_idx];
             *ptr = 0;
-            
+
             // front를 한 칸 전진 (원형으로 뱅글뱅글 돔)
-            front_idx = (front_idx + 1) % capacity; 
+            front_idx = (front_idx + 1) % capacity;
             count--;
 
             allocated_map[obj_id] = ptr;
@@ -164,13 +168,15 @@ public:
     void free(int64_t obj_id)
     {
         int64_t *ptr = allocated_map[obj_id];
+        volatile int temp = *ptr;
         allocated_map.erase(obj_id);
 
         // 큐 뒤에 반납 (FIFO: 뒤로 넣음)
         // 안전장치: 큐가 꽉 차지 않았을 때만 넣음 (이 시뮬레이션에선 넘칠 일 없음)
-        if (count < capacity) {
+        if (count < capacity)
+        {
             pool[rear_idx] = ptr;
-            
+
             // rear를 한 칸 전진
             rear_idx = (rear_idx + 1) % capacity;
             count++;
@@ -249,43 +255,54 @@ long long run_benchmark(Allocator &allocator, const std::vector<entry> &entries)
     return std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     // 0. 모드 파싱 (기본값: "all")
     std::string mode = "all";
-    for(int i = 1; i < argc; ++i) {
+    for (int i = 1; i < argc; ++i)
+    {
         std::string arg = argv[i];
-        if (arg.find("--mode=") == 0) {
+        if (arg.find("--mode=") == 0)
+        {
             mode = arg.substr(7); // "--mode=" 길이가 7이므로 그 뒤부터 읽음
         }
     }
 
     // 1. 데이터 로드 (모든 모드 공통)
-    // std::cout << "Loading data for mode: " << mode << "..." << std::endl;
+    std::cout << "Loading data for mode: " << mode << "..." << std::endl;
     std::vector<entry> entries = readFile("allocation_log.csv");
 
-    // 2. 반복 횟수 설정
-    const int TEST_ITERATIONS = 1;
+    // 설정 변수
+    const int WARMUP_ITERATIONS = 1; // 워밍업 횟수 (보통 1회면 충분)
+    const int TEST_ITERATIONS = 5;   // 실제 측정 횟수 (평균이나 최소값을 위해 여러 번)
+
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << " Benchmark Started (Warmup: " << WARMUP_ITERATIONS 
+              << ", Iterations: " << TEST_ITERATIONS << ")" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
 
     // ---------------------------------------------------------
     // TEST 1: Basic Allocator
     // ---------------------------------------------------------
-    if (mode == "basic" || mode == "all") 
+    if (mode == "basic" || mode == "all")
     {
-        long long min_time = LLONG_MAX;
-
-        // [Warm-up]
+        // [Warming Up]
+        // 시간 측정 없이 로직만 수행하여 캐시를 데웁니다.
+        for (int i = 0; i < WARMUP_ITERATIONS; ++i)
         {
-            BasicAllocator warmup_alloc;
-            run_benchmark(warmup_alloc, entries);
+            BasicAllocator allocator; 
+            run_benchmark(allocator, entries);
         }
+
+        long long min_time = LLONG_MAX;
 
         // [Actual Test]
         for (int i = 0; i < TEST_ITERATIONS; ++i)
         {
             BasicAllocator allocator;
             long long time = run_benchmark(allocator, entries);
-            if (time < min_time) min_time = time;
+            if (time < min_time)
+                min_time = time;
         }
         std::cout << "[1] Basic Allocator: " << min_time << "ms" << std::endl;
     }
@@ -293,22 +310,24 @@ int main(int argc, char** argv)
     // ---------------------------------------------------------
     // TEST 2: Stack Mempool
     // ---------------------------------------------------------
-    if (mode == "stack" || mode == "all") 
+    if (mode == "stack" || mode == "all")
     {
-        long long min_time = LLONG_MAX;
-
-        // [Warm-up]
+        // [Warming Up]
+        for (int i = 0; i < WARMUP_ITERATIONS; ++i)
         {
-            MempoolStack warmup_alloc;
-            run_benchmark(warmup_alloc, entries);
+            MempoolStack allocator;
+            run_benchmark(allocator, entries);
         }
+
+        long long min_time = LLONG_MAX;
 
         // [Actual Test]
         for (int i = 0; i < TEST_ITERATIONS; ++i)
         {
             MempoolStack allocator;
             long long time = run_benchmark(allocator, entries);
-            if (time < min_time) min_time = time;
+            if (time < min_time)
+                min_time = time;
         }
         std::cout << "[2] Mempool (STACK): " << min_time << "ms" << std::endl;
     }
@@ -316,22 +335,24 @@ int main(int argc, char** argv)
     // ---------------------------------------------------------
     // TEST 3: Queue Mempool (Circular Queue)
     // ---------------------------------------------------------
-    if (mode == "queue" || mode == "all") 
+    if (mode == "queue" || mode == "all")
     {
-        long long min_time = LLONG_MAX;
-
-        // [Warm-up]
+        // [Warming Up]
+        for (int i = 0; i < WARMUP_ITERATIONS; ++i)
         {
-            MempoolCircularQueue warmup_alloc;
-            run_benchmark(warmup_alloc, entries);
+            MempoolCircularQueue allocator;
+            run_benchmark(allocator, entries);
         }
+
+        long long min_time = LLONG_MAX;
 
         // [Actual Test]
         for (int i = 0; i < TEST_ITERATIONS; ++i)
         {
             MempoolCircularQueue allocator;
             long long time = run_benchmark(allocator, entries);
-            if (time < min_time) min_time = time;
+            if (time < min_time)
+                min_time = time;
         }
         std::cout << "[3] Mempool (QUEUE): " << min_time << "ms" << std::endl;
     }

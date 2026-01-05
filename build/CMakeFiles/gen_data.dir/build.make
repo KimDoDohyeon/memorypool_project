@@ -68,9 +68,9 @@ include CMakeFiles/gen_data.dir/progress.make
 
 CMakeFiles/gen_data: allocation_log.csv
 
-allocation_log.csv: ../allocation_log_generater.py
+allocation_log.csv: ../allocation_log_generator.py
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/root/memorypool_project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Running Python script to generate allocation_log.csv..."
-	/usr/bin/python3.10 /root/memorypool_project/allocation_log_generater.py
+	/usr/bin/python3.10 /root/memorypool_project/allocation_log_generator.py
 
 gen_data: CMakeFiles/gen_data
 gen_data: allocation_log.csv
