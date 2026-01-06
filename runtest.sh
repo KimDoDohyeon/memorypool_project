@@ -7,6 +7,9 @@
 # k8s 환경이나 권한 문제로 taskset 실패 시 false로 변경하세요.
 ENABLE_CPU_PINNING=false
 
+# 로그 파일 생성 활성화 여부 (true: 생성, false: 생성하지 않음)
+ENABLE_LOG_GENERATION=false
+
 # 테스트 반복 횟수
 ITERATIONS=10
 
@@ -44,14 +47,16 @@ fi
 # ==========================================
 # 로그 파일 생성
 # ==========================================
-if [ -f allocation_log.csv ]; then
-    rm -f allocation_log.csv
-fi
+if [ "$ENABLE_LOG_GENERATION" == "true" ]; then
+    if [ -f allocation_log.csv ]; then
+        rm -f allocation_log.csv
+    fi
 
-# python 스크립트 실행 (한 번만 수행)
-if ! python3 "$PROJECT_ROOT/allocation_log_generator.py"; then
-    echo "Error: Failed to generate allocation_log.csv"
-    exit 1
+    # python 스크립트 실행 (한 번만 수행)
+    if ! python3 "$PROJECT_ROOT/allocation_log_generator.py"; then
+        echo "Error: Failed to generate allocation_log.csv"
+        exit 1
+    fi
 fi
 
 # ==========================================
